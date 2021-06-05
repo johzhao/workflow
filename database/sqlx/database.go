@@ -3,33 +3,34 @@ package sqlx
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	_interface "workflow/database/interface"
+	"workflow/database/database"
+	"workflow/database/database/repository"
 )
 
-func NewSQLXDatabase(driverName string, dataSourceName string) (_interface.Database, error) {
+func NewSQLXDatabase(driverName string, dataSourceName string) (database.Database, error) {
 	db, err := sqlx.Connect(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
 	}
 
-	return &database{
+	return &sqlxDB{
 		db: db,
 	}, nil
 }
 
-type database struct {
+type sqlxDB struct {
 	db *sqlx.DB
 	tx *sqlx.Tx
 }
 
-func (d *database) Close() error {
+func (d *sqlxDB) Close() error {
 	if d.tx != nil {
 		return fmt.Errorf("in transaction")
 	}
 	return d.db.Close()
 }
 
-func (d *database) Begin() (_interface.Database, error) {
+func (d *sqlxDB) Begin() (database.Database, error) {
 	if d.tx != nil {
 		return d, nil
 	}
@@ -39,13 +40,13 @@ func (d *database) Begin() (_interface.Database, error) {
 		return nil, err
 	}
 
-	return &database{
+	return &sqlxDB{
 		db: d.db,
 		tx: tx,
 	}, nil
 }
 
-func (d *database) Rollback() error {
+func (d *sqlxDB) Rollback() error {
 	if d.tx == nil {
 		return fmt.Errorf("not in transaction")
 	}
@@ -58,7 +59,7 @@ func (d *database) Rollback() error {
 	return nil
 }
 
-func (d *database) Commit() error {
+func (d *sqlxDB) Commit() error {
 	if d.tx == nil {
 		return fmt.Errorf("not in transaction")
 	}
@@ -71,11 +72,11 @@ func (d *database) Commit() error {
 	return nil
 }
 
-func (d database) GetActionRepository() _interface.ActionRepository {
+func (d sqlxDB) GetActionRepository() repository.Action {
 	return newActionRepository(d.getExt())
 }
 
-func (d database) getExt() sqlx.Ext {
+func (d sqlxDB) getExt() sqlx.Ext {
 	if d.tx != nil {
 		return d.tx
 	}

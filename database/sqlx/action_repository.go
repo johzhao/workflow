@@ -2,10 +2,11 @@ package sqlx
 
 import (
 	"github.com/jmoiron/sqlx"
-	_interface "workflow/database/interface"
+	"workflow/database/database/repository"
+	"workflow/models/DO"
 )
 
-func newActionRepository(ext sqlx.Ext) _interface.ActionRepository {
+func newActionRepository(ext sqlx.Ext) repository.Action {
 	return &actionRepository{
 		actionDAO:  newActionDAO(ext),
 		triggerDAO: newTriggerDAO(ext),
@@ -17,7 +18,7 @@ type actionRepository struct {
 	triggerDAO triggerDAO
 }
 
-func (a actionRepository) Insert(action _interface.ActionDO) (int, error) {
+func (a actionRepository) Insert(action DO.Action) (int, error) {
 	actionPO, err := actionDOToActionPO(action)
 	if err != nil {
 		return 0, err
@@ -37,7 +38,7 @@ func (a actionRepository) Insert(action _interface.ActionDO) (int, error) {
 	return actionID, nil
 }
 
-func (a actionRepository) FindByID(actionID int) (*_interface.ActionDO, error) {
+func (a actionRepository) FindByID(actionID int) (*DO.Action, error) {
 	actionPO, err := a.actionDAO.FindByID(actionID)
 	if err != nil {
 		return nil, err

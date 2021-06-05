@@ -1,4 +1,6 @@
-package _interface
+package database
+
+import "workflow/database/database/repository"
 
 type Database interface {
 	Close() error
@@ -7,5 +9,5 @@ type Database interface {
 	Rollback() error
 	Commit() error
 
-	GetActionRepository() ActionRepository
+	GetActionRepository() repository.Action
 }

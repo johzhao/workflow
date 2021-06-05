@@ -1,10 +1,10 @@
 package database
 
 import (
-	_interface "workflow/database/interface"
+	"workflow/database/database"
 	"workflow/database/sqlx"
 )
 
-func NewDatabase(driverName string, dataSourceName string) (_interface.Database, error) {
+func NewDatabase(driverName string, dataSourceName string) (database.Database, error) {
 	return sqlx.NewSQLXDatabase(driverName, dataSourceName)
 }

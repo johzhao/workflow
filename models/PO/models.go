@@ -1,12 +1,14 @@
-package sqlx
+package PO
 
-import _interface "workflow/database/interface"
-
-const (
-	hookTypeAction = "action"
+import (
+	"workflow/models"
 )
 
-type triggerPO struct {
+const (
+	HookTypeAction = "action"
+)
+
+type Trigger struct {
 	ID       int    `db:"id"`
 	Target   string `db:"target"`
 	Code     int    `db:"code"`
@@ -15,12 +17,12 @@ type triggerPO struct {
 	HookID   int    `db:"hook_id"`
 }
 
-type actionContext struct {
-	Parameters   []_interface.ActionParameter   `json:"parameters"`
-	Environments []_interface.ActionEnvironment `json:"environments"`
+type ActionContext struct {
+	Parameters   []models.ActionParameter   `json:"parameters"`
+	Environments []models.ActionEnvironment `json:"environments"`
 }
 
-type actionPO struct {
+type Action struct {
 	ID      int    `db:"id"`
 	Title   string `db:"title"`
 	Content string `db:"content"`

@@ -2,53 +2,55 @@ package sqlx
 
 import (
 	"encoding/json"
-	_interface "workflow/database/interface"
+	"workflow/models"
+	"workflow/models/DO"
+	"workflow/models/PO"
 )
 
-func actionDOToActionPO(action _interface.ActionDO) (actionPO, error) {
-	context := actionContext{
+func actionDOToActionPO(action DO.Action) (PO.Action, error) {
+	context := PO.ActionContext{
 		Parameters:   action.Parameters,
 		Environments: action.Environments,
 	}
 	if context.Parameters == nil {
-		context.Parameters = make([]_interface.ActionParameter, 0)
+		context.Parameters = make([]models.ActionParameter, 0)
 	}
 	if context.Environments == nil {
-		context.Environments = make([]_interface.ActionEnvironment, 0)
+		context.Environments = make([]models.ActionEnvironment, 0)
 	}
 
 	contextData, err := json.Marshal(context)
 	if err != nil {
-		return actionPO{}, err
+		return PO.Action{}, err
 	}
 
-	return actionPO{
+	return PO.Action{
 		Title:   action.Title,
 		Content: action.Content,
 		Context: string(contextData),
 	}, nil
 }
 
-func actionDOToTriggerPO(action _interface.ActionDO) triggerPO {
-	return triggerPO{
+func actionDOToTriggerPO(action DO.Action) PO.Trigger {
+	return PO.Trigger{
 		Target:   action.Trigger.Target,
 		Code:     action.Trigger.Code,
 		Enabled:  action.Trigger.Enabled,
-		HookType: hookTypeAction,
+		HookType: PO.HookTypeAction,
 	}
 }
 
-func makeActionDO(action actionPO, trigger triggerPO) (_interface.ActionDO, error) {
-	var context actionContext
+func makeActionDO(action PO.Action, trigger PO.Trigger) (DO.Action, error) {
+	var context PO.ActionContext
 	if err := json.Unmarshal([]byte(action.Context), &context); err != nil {
-		return _interface.ActionDO{}, err
+		return DO.Action{}, err
 	}
 
-	return _interface.ActionDO{
+	return DO.Action{
 		ID:      action.ID,
 		Title:   action.Title,
 		Content: action.Content,
-		Trigger: _interface.Trigger{
+		Trigger: DO.Trigger{
 			Target:  trigger.Target,
 			Code:    trigger.Code,
 			Enabled: trigger.Enabled,

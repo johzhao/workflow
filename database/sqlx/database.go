@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"workflow/database/database"
 	"workflow/database/database/repository"

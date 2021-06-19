@@ -33,7 +33,7 @@ func (a Action) Create(cmd DTO.CreateActionCommand) (int, error) {
 		return 0, err
 	}
 
-	if err := db.Rollback(); err != nil {
+	if err := db.Commit(); err != nil {
 		return 0, err
 	}
 

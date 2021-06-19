@@ -10,3 +10,18 @@ type CreateActionCommand struct {
 	Parameters   []models.ActionParameter   `json:"parameters"`
 	Environments []models.ActionEnvironment `json:"environments"`
 }
+
+type UpdateActionCommand struct {
+	ActionID int `validate:"gt=0"`
+	// TODO:
+}
+
+type SetActionStatusCommand struct {
+	ActionID int `validate:"gt=0"`
+	Enabled  bool
+}
+
+type LaunchActionCommand struct {
+	ActionID int `validate:"gt=0"`
+	// TODO:
+}

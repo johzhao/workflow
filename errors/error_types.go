@@ -8,9 +8,12 @@ import (
 type ErrorCode string
 
 const (
+	ErrRouteNotFound = ErrorCode("ERR-00000404")
+	ErrorBadRequest  = ErrorCode("ERR-00000400")
+
 	ErrUnknown       = ErrorCode("ERR-10000000")
-	ErrRouteNotFound = ErrorCode("ERR-10000404")
-	ErrorBadRequest  = ErrorCode("ERR-10000400")
+	ErrNotSupport    = ErrorCode("ERR-10000001")
+	ErrNeedImplement = ErrorCode("ERR-10000002")
 )
 
 func (e ErrorCode) New(msg string) error {

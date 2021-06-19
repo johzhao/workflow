@@ -3,13 +3,14 @@ package service
 import (
 	"github.com/go-playground/validator"
 	"workflow/database/database"
-	"workflow/errors"
 	"workflow/models/DTO"
 )
 
 type Action struct {
-	Validate *validator.Validate
-	DB       database.Database
+	Validate        *validator.Validate
+	DB              database.Database
+	WorkflowService Workflow
+	ActivityService Activity
 }
 
 func (a Action) Create(cmd DTO.CreateActionCommand) (int, error) {
@@ -25,17 +26,15 @@ func (a Action) Create(cmd DTO.CreateActionCommand) (int, error) {
 		return 0, err
 	}
 	defer func() {
-		_ = db.Rollback()
+		if err != nil {
+			_ = db.Rollback()
+		} else {
+			err = db.Commit()
+		}
 	}()
 
-	actionID, err := db.GetActionRepository().Insert(actionDO)
-	if err != nil {
-		return 0, err
-	}
-
-	if err := db.Commit(); err != nil {
-		return 0, err
-	}
+	var actionID int
+	actionID, err = db.GetActionRepository().Insert(actionDO)
 
 	return actionID, nil
 }
@@ -46,7 +45,21 @@ func (a Action) Update(cmd DTO.UpdateActionCommand) error {
 		return err
 	}
 
-	return errors.ErrNeedImplement.New("")
+	db, err := a.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			_ = db.Rollback()
+		} else {
+			err = db.Commit()
+		}
+	}()
+
+	err = db.GetActionRepository().Update() // TODO: add parameters
+
+	return err
 }
 
 func (a Action) SetActionStatus(cmd DTO.SetActionStatusCommand) error {
@@ -55,7 +68,21 @@ func (a Action) SetActionStatus(cmd DTO.SetActionStatusCommand) error {
 		return err
 	}
 
-	return errors.ErrNeedImplement.New("")
+	db, err := a.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			_ = db.Rollback()
+		} else {
+			err = db.Commit()
+		}
+	}()
+
+	err = a.DB.GetActionRepository().SetStatus(cmd.ActionID, cmd.Enabled)
+
+	return err
 }
 
 func (a Action) ListActionsByTarget(query DTO.ListActionsByTargetQuery) ([]DTO.Action, error) {
@@ -64,7 +91,18 @@ func (a Action) ListActionsByTarget(query DTO.ListActionsByTargetQuery) ([]DTO.A
 		return nil, err
 	}
 
-	return nil, errors.ErrNeedImplement.New("")
+	actionDOs, err := a.DB.GetActionRepository().ListByTarget(query.Target)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]DTO.Action, 0, len(actionDOs))
+	for _, actionDO := range actionDOs {
+		actionDTO := actionDOToActionDTO(*actionDO)
+		result = append(result, actionDTO)
+	}
+
+	return result, nil
 }
 
 func (a Action) GetByID(query DTO.GetActionByIDQuery) (DTO.Action, error) {
@@ -73,7 +111,12 @@ func (a Action) GetByID(query DTO.GetActionByIDQuery) (DTO.Action, error) {
 		return DTO.Action{}, err
 	}
 
-	return a.getByID(query.ActionID)
+	actionDO, err := a.DB.GetActionRepository().FindByID(query.ActionID)
+	if err != nil {
+		return DTO.Action{}, err
+	}
+
+	return actionDOToActionDTO(*actionDO), nil
 }
 
 func (a Action) Launch(cmd DTO.LaunchActionCommand) error {
@@ -82,20 +125,38 @@ func (a Action) Launch(cmd DTO.LaunchActionCommand) error {
 		return err
 	}
 
-	action, err := a.getByID(cmd.ActionID)
+	actionDO, err := a.DB.GetActionRepository().FindByID(cmd.ActionID)
 	if err != nil {
 		return err
 	}
 
-	// TODO: launch the action
-	_ = action
-	return errors.ErrNeedImplement.New("")
+	workflowID, err := a.WorkflowService.ExecuteAction(*actionDO)
+	if err != nil {
+		return err
+	}
+
+	return a.ActivityService.Insert(*actionDO, workflowID)
 }
 
-func (a Action) getByID(actionID int) (DTO.Action, error) {
-	actionDO, err := a.DB.GetActionRepository().FindByID(actionID)
+func (a Action) DeleteByID(cmd DTO.DeleteActionByIDCommand) error {
+	err := a.Validate.Struct(cmd)
 	if err != nil {
-		return DTO.Action{}, err
+		return err
 	}
-	return actionDOToActionDTO(*actionDO), nil
+
+	db, err := a.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			_ = db.Rollback()
+		} else {
+			err = db.Commit()
+		}
+	}()
+
+	err = a.DB.GetActionRepository().Delete(cmd.ActionID)
+
+	return err
 }

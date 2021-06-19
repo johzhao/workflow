@@ -3,6 +3,7 @@ package sqlx
 import (
 	"github.com/jmoiron/sqlx"
 	"workflow/database/database/repository"
+	"workflow/errors"
 	"workflow/models/DO"
 )
 
@@ -36,6 +37,22 @@ func (a actionRepository) Insert(action DO.Action) (int, error) {
 	}
 
 	return actionID, nil
+}
+
+func (a actionRepository) Delete(actionID int) error {
+	return errors.ErrNeedImplement.New("")
+}
+
+func (a actionRepository) Update() error {
+	return errors.ErrNeedImplement.New("")
+}
+
+func (a actionRepository) SetStatus(actionID int, status bool) error {
+	return errors.ErrNeedImplement.New("")
+}
+
+func (a actionRepository) ListByTarget(target string) ([]*DO.Action, error) {
+	return nil, errors.ErrNeedImplement.New("")
 }
 
 func (a actionRepository) FindByID(actionID int) (*DO.Action, error) {

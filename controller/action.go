@@ -46,3 +46,8 @@ func (a Action) LaunchAction(ctx *gin.Context) (interface{}, error) {
 	cmd := DTO.LaunchActionCommand{} // TODO: fill with request data
 	return nil, a.ActionService.Launch(cmd)
 }
+
+func (a Action) DeleteActionByID(ctx *gin.Context) (interface{}, error) {
+	cmd := DTO.DeleteActionByIDCommand{} // TODO: fill with request data
+	return nil, a.ActionService.DeleteByID(cmd)
+}

@@ -36,9 +36,17 @@ func main() {
 
 	validate := validator.New()
 
+	workflow := service.Workflow{}
+
+	activityService := service.Activity{
+		DB: db,
+	}
+
 	actionService := service.Action{
-		Validate: validate,
-		DB:       db,
+		Validate:        validate,
+		DB:              db,
+		WorkflowService: workflow,
+		ActivityService: activityService,
 	}
 
 	actionController := controller.Action{

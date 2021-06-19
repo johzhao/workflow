@@ -25,3 +25,8 @@ type LaunchActionCommand struct {
 	ActionID int `validate:"gt=0"`
 	// TODO:
 }
+
+type DeleteActionByIDCommand struct {
+	ActionID int `validate:"gt=0"`
+	// TODO:
+}
